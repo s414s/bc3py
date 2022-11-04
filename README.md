@@ -4,4 +4,4 @@ This Python packacge, currently under development, aims to read bc3 files, creat
 ## Information
 
 * bc3py si created to meet FIEBDC-3/2020 specifications. (entry into force as of 01/01/2021).
-* bc3py objects have been named following the name convention followed on the document FIEBDC-3/2020
+* bc3py follows the name convention of the document FIEBDC-3/2020
