@@ -3,6 +3,28 @@ from bc3concept import Bc3_Concept
 class Registry_Handler:
 
     def __init__(self, document):
+        self.action = {
+            'V': self.set_ownership,
+            'K': self.set_coefficient,
+            'C': self.create_concept,
+            'D': self.set_decomposition,
+            'Y': self.add_decomposition,
+            'R': self.set_waste_decomposition,
+            'T': self.set_text,
+            'P': self.set_parametric_description,
+            'L': self.set_specification,
+            'W': self.set_geographic_scope,
+            'G': self.set_graphic_information,
+            'E': self.set_entity,
+            'O': self.set_commercial_relation,
+            'X': self.set_technical_information,
+            'M': self.set_measurement,
+            'N': self.add_measurement,
+            'I': self.set_bim_file,
+            'A': self.set_key,
+            'B': self.set_code_change,
+            'F': self.set_attached_file
+            }
         self.doc = document
         self.registries = None
         self.get_registries(document.file.replace('\n', ''))
@@ -114,7 +136,7 @@ class Registry_Handler:
 
     def set_decomposition(self, registry):
         result_to_append = {
-            'code': 'codigo de elemento del que forma parte',
+            'code': 'code of the element if belongs to',
             'factor': 'rendimiento en los elementos donde forma parte',
             'output': 'output en los elementos donde forma parte'
             }
@@ -217,35 +239,12 @@ class Registry_Handler:
         #to be completed
         pass
 
-    def pass_action(self, registry):
-        pass
-
     def execute_registry(self, registry):
-        action = {
-            'V': self.set_ownership,
-            'K': self.set_coefficient,
-            'C': self.create_concept,
-            'D': self.set_decomposition,
-            'Y': self.add_decomposition,
-            'R': self.set_waste_decomposition,
-            'T': self.set_text,
-            'P': self.set_parametric_description,
-            'L': self.set_specification,
-            'W': self.set_geographic_scope,
-            'G': self.set_graphic_information,
-            'E': self.set_entity,
-            'O': self.set_commercial_relation,
-            'X': self.set_technical_information,
-            'M': self.set_measurement,
-            'N': self.add_measurement,
-            'I': self.set_bim_file,
-            'A': self.set_key,
-            'B': self.set_code_change,
-            'F': self.set_attached_file
-            }
-
-        action[registry[0]](registry)
-        #action.get(key[registry[0], "skip"])
+        if registry[0] in self.action.keys():
+            self.action[registry[0]](registry)
+            #action.get(key[registry[0], "skip"])
+        else:
+            pass
         
     def read_registries(self, registries):
         for registry in registries:

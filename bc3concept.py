@@ -15,7 +15,7 @@ class Bc3_Concept:
         self.child = None # (1,N) set by registry D LIST OF DICTIONARIES
         self.graphic_information = None
         self.measurement = None
-        self.set_nature()
+        self.set_nature(self.code)
 
     def set_code(self, concept_code):
         #to be completed
@@ -74,7 +74,7 @@ class Bc3_Concept:
     def set_nature(self, code):
         if '##' in code:
             self.nature = 'root'
-        else if '#' in code:
+        elif '#' in code:
             self.nature = 'chapter'
         else:
             self.nature = 'element'
