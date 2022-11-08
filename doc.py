@@ -11,6 +11,7 @@ class Bc3doc:
         self.geographic_scope = None
         self.entities = None
         self.coefficient = None
+        self.bim_files = None
         self.bc3_handler = Registry_Handler(self)
 
     def add_concept(self, concept_obj):
@@ -23,13 +24,22 @@ class Bc3doc:
         #to be completed
         pass
 
+    def set_bim_files(self, f):
+        if self.bim_files:
+            self.bim_files.append(f)
+        else:
+            self.bim_files = []
+            self.bim_files.append(f)
+
     def get_concepts_by_nature(self, concept_nature):
         #to be completed
         pass
 
-    def get_concept_by_code(self, concept_code):
+    def get_concept_by_code(self, c_code):
+        for c in self.concepts:
+            if c.code == c_code:
+                return c
         #to be completed
-        pass
 
     def get_concept_by_id(self, concept_id):
         # if concept_id in Object.concept_id
