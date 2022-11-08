@@ -53,8 +53,6 @@ class Registry_Handler:
         except IndexError:
             field = None
             return field
-            # pass
-        #continue
     
     def get_registries(self, raw_data):
         registries = raw_data.split('~')
@@ -321,7 +319,7 @@ class Registry_Handler:
         tc = self.doc.get_concept_by_code(c_code)
 
         # ---- Position ----
-        if position:
+        if position: # remove empty fields
             tc.set_position(position)
         # TBD
 
@@ -337,22 +335,23 @@ class Registry_Handler:
                 }
 
             for m in meas_lines:
-                m_type = m[0]
+                m_type = self.check_exists(m[0])
                 if m_type in def_type.keys():
-                    m_type = def_type[m_type]
+                    m_type = def_type[m[0]]
                 
                 com = self.check_exists(m[1])
                 u = self.check_exists(m[2])
                 l = self.check_exists(m[3])
                 lat = self.check_exists(m[4])
                 h = self.check_exists(m[5])
+                print("meas sent")
                 tc.set_measurement({'type': m_type,
                                     'comment': com,
                                     'units': u,
                                     'length': l,
                                     'latitude': lat,
                                     'height': h})
-        # check the total measurememt this alongside with the total
+        # compare the total measurememt with the sum of meas
         # to be completed     
         
     def add_measurement(self, r):

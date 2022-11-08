@@ -62,11 +62,10 @@ class Bc3_Concept:
         pass
 
     def set_child(self, c):
-        if self.child:
-            self.child.append(c)
-        else:
+        if self.child == None:
             self.child = []
-            self.child.append(c)
+
+        self.child.append(c)
 
     def set_graphic_information(self, graphic_information):
         # to be completed
@@ -76,19 +75,20 @@ class Bc3_Concept:
         self.total_measurement = tm
 
     def set_measurement(self, m):
-        # to be completed
-        pass
+        if self.measurement == None:
+            self.measurement = []
+
+        self.measurement.append(m)
 
     def set_position(self, p):
         # to be completed
         pass
 
     def set_waste_decomposition(self, wd):
-        if self.waste_decomposition:
-            self.waste_decomposition.append(wd)
-        else:
+        if self.waste_decomposition == None:
             self.waste_decomposition = []
-            self.waste_decomposition.append(wd)
+
+        self.waste_decomposition.append(wd)
 
     def set_position(self, p):
         if self.position:
@@ -106,4 +106,13 @@ class Bc3_Concept:
 
     def check_coefficients(self, coefficients):
         # will check all the numbers comply with the coefficients.
+        pass
+
+    def print_chapters(self):
+        pass
+
+    def print_concepts_in(self, c_code):
+        pass
+
+    def print_measurement(self, c_code):
         pass
