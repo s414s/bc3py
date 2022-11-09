@@ -29,6 +29,7 @@ class Registry_Handler:
             }
         self.doc = document
         self.registries = None
+        self.id_count = 1
         self.get_registries(document.file.replace('\n', '')) # TBD respect ASCII-10 (\n) and ASCII-13 (\r)
         self.read_registries(self.registries)
 
@@ -40,10 +41,10 @@ class Registry_Handler:
         #to be completed. Returns code without # or ##
         pass
 
-    def group_subfields(self, subfields, num):
-        num_groups = len(subfields)%num
+    def group_subfields(self, subfields, num): #returns an array of groups
+        num_groups = int(len(subfields)/num)
         groups = [subfields[(i*num):num+(i*num)] for i in range(num_groups)]    
-        return groups  #returns an array with arrays
+        return groups
 
     def check_exists(self, field):
         # check whether an index of an array exists
@@ -137,6 +138,9 @@ class Registry_Handler:
 
         concept = Bc3_Concept(code)
 
+        concept.id = self.id_count
+        self.id_count += 1
+
         if unit:
             concept.set_unit(unit)
 
@@ -158,15 +162,18 @@ class Registry_Handler:
         self.doc.add_concept(concept)
 
     def set_decomposition(self, r):
-        p_code = r[1]
+        p_code = r[1] # (1)
         dec = r[2] # (1,N)
-        dec = r[3] # (1,N)
-        children = self.group_subfields(dec)
+        dec2 = r[3] # (1,N) Decide which one to be used
+        
+        children = self.group_subfields(dec, 3)
         pc = self.doc.get_concept_by_code(p_code)
         
         for c in children:
-            code = c[0]
-            factor = self.check_exists(c[1]) # (0,1)
+            code = c[0] # (1)
+            factor = 1
+            if self.check_exists(c[1]): # (0,1)
+                factor = c[1]
             output = 1
             if self.check_exists(c[2]): # (0,1)
                 output = c[2]
@@ -179,11 +186,9 @@ class Registry_Handler:
             cc.set_parent({'code': p_code,
                            'factor': factor,
                            'output': output})
-            
-        #to be completed. set child and parent
 
     def add_decomposition(self, r):
-        pass
+        self.set_decomposition(r)
 
     def set_waste_decomposition(self, r):
         # merge with child from decomposition
@@ -220,9 +225,7 @@ class Registry_Handler:
         c_code = r[1]
         descriptive_text = r[2]
         tc = self.doc.get_concept_by_code(c_code)
-        tc.set_text(descriptive_text)
-        #to be completed
-        pass
+        tc.set_descriptive_text(descriptive_text)
 
     def set_parametric_description(self, r):
         #to be completed
@@ -319,14 +322,18 @@ class Registry_Handler:
         tc = self.doc.get_concept_by_code(c_code)
 
         # ---- Position ----
-        if position: # remove empty fields
-            tc.set_position(position)
+        if position and tc: # remove empty fields
+            p = []
+            for item in position:
+                if item:
+                    p.append(item)
+            tc.set_position(p)
         # TBD
 
         # ---- Info Meas ----
         tc.set_total_measurement(total_meas)
 
-        if info_meas:
+        if info_meas and tc:
             meas_lines = self.group_subfields(info_meas, 6)
             def_type = {
                 '1': 'Partial Subtotal',
@@ -344,7 +351,6 @@ class Registry_Handler:
                 l = self.check_exists(m[3])
                 lat = self.check_exists(m[4])
                 h = self.check_exists(m[5])
-                print("meas sent")
                 tc.set_measurement({'type': m_type,
                                     'comment': com,
                                     'units': u,
@@ -352,7 +358,6 @@ class Registry_Handler:
                                     'latitude': lat,
                                     'height': h})
         # compare the total measurememt with the sum of meas
-        # to be completed     
         
     def add_measurement(self, r):
         pass
@@ -426,11 +431,11 @@ class Registry_Handler:
         
     def read_registries(self, rs):
         # include a 'try' to handle errors
-        test_ready = ["C"] # add registry types ready to test
+        test_ready = ['C']
         for r in rs:
             if r[0] and r[0] in test_ready:
                 self.execute_registry(r)
 
         for r in rs:
-            if r[0] and r[0] in ["M"]:
+            if r[0] and r[0] in ['M', 'D', 'T']: # add registry types ready to test
                 self.execute_registry(r)

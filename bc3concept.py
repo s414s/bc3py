@@ -17,7 +17,6 @@ class Bc3_Concept:
         self.graphic_information = None
         self.total_measurement = None
         self.measurement = None
-        self.position = None
         self.waste_decomposition = None
         self.set_nature(self.code)
 
@@ -34,8 +33,7 @@ class Bc3_Concept:
         # to be completed
 
     def set_descriptive_text(self, dt):
-        # to be completed
-        pass
+        self.descriptive_text = dt
 
     def set_price(self, p):
         self.price = p
@@ -58,8 +56,10 @@ class Bc3_Concept:
         pass
 
     def set_parent(self, p):
-        # to be completed
-        pass
+        if self.parent == None:
+            self.parent = []
+
+        self.parent.append(p)
 
     def set_child(self, c):
         if self.child == None:
@@ -81,8 +81,9 @@ class Bc3_Concept:
         self.measurement.append(m)
 
     def set_position(self, p):
-        # to be completed
-        pass
+        if self.position:
+            return
+        self.position = p
 
     def set_waste_decomposition(self, wd):
         if self.waste_decomposition == None:
@@ -102,17 +103,8 @@ class Bc3_Concept:
         elif '#' in code:
             self.nature = 'chapter'
         else:
-            self.nature = 'element'
+            self.nature = 'item'
 
     def check_coefficients(self, coefficients):
         # will check all the numbers comply with the coefficients.
-        pass
-
-    def print_chapters(self):
-        pass
-
-    def print_concepts_in(self, c_code):
-        pass
-
-    def print_measurement(self, c_code):
         pass

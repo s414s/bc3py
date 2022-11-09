@@ -39,9 +39,9 @@ class Bc3doc:
         for c in self.concepts:
             if c.code == c_code:
                 return c
-        #to be completed
+        else:
+            return None
 
     def get_concept_by_id(self, concept_id):
-        # if concept_id in Object.concept_id
         #to be completed
         pass
