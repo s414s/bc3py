@@ -1,4 +1,4 @@
-from registry import Registry_Handler
+from bc3registry import Registry_Handler
 
 class Bc3doc:
 

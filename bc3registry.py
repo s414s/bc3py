@@ -34,7 +34,7 @@ class Registry_Handler:
         self.read_registries(self.registries)
 
     def code_type(self, code):
-        #to be completed. returns wether it is the root, chapter or element
+        #to be completed. returns wether it is the root, chapter or element (nature)
         pass
 
     def clean_code(self, code):
@@ -52,8 +52,7 @@ class Registry_Handler:
             if field:
                 return field
         except IndexError:
-            field = None
-            return field
+            return None
     
     def get_registries(self, raw_data):
         registries = raw_data.split('~')
@@ -121,7 +120,7 @@ class Registry_Handler:
         #to be completed
    
     def create_concept(self, r):
-        default_types = {
+        def_types = {
             '0': 'unclassified',
             '1': 'labour',
             '2': 'machinery and auxiliary equipment',
@@ -134,30 +133,21 @@ class Registry_Handler:
         summary = self.check_exists(r[3]) # (0,1)
         price = self.check_exists(r[4]) # (0,N)
         date = self.check_exists(r[5]) # (0,N)
-        c_type = self.check_exists(r[6]) # (0,1)          
+        c_type = self.check_exists(r[6]) # (0,1)
 
         concept = Bc3_Concept(code)
 
         concept.id = self.id_count
         self.id_count += 1
 
-        if unit:
-            concept.set_unit(unit)
-
-        if summary:
-            concept.set_summary(summary)
-
-        if price:
-            concept.set_price(price)
-
-        if date:
-            concept.set_date(date)
+        concept.set_unit(unit)
+        concept.set_summary(summary)
+        concept.set_price(price)
+        concept.set_date(date)
 
         if c_type:
-            if c_type in default_types.keys():
-                concept.set_type(default_types[c_type])
-            else:
-                concept.set_type(c_type)
+            con_type = c_type if c_type not in def_types.keys() else def_types[c_type]
+            concept.set_type(con_type)
 
         self.doc.add_concept(concept)
 
@@ -171,12 +161,8 @@ class Registry_Handler:
         
         for c in children:
             code = c[0] # (1)
-            factor = 1
-            if self.check_exists(c[1]): # (0,1)
-                factor = c[1]
-            output = 1
-            if self.check_exists(c[2]): # (0,1)
-                output = c[2]
+            factor = c[1] if bool(self.check_exists(c[1])) else 1
+            output = c[2] if bool(self.check_exists(c[2])) else 1
             
             pc.set_child({'code': code,
                           'factor': factor,
@@ -191,10 +177,10 @@ class Registry_Handler:
         self.set_decomposition(r)
 
     def set_waste_decomposition(self, r):
-        # merge with child from decomposition
+        # merge with child from decomposition or set appart?
         p_code = r[1] # (1)
-        dec = r[2:] # (0,N)
-        def_d_type = {
+        decomposition = r[2:] # (0,N)
+        def_type = {
             '0': 'Placement-component waste',
             '1': 'Demolition-component waste',
             '2': 'Excavation-component waste',
@@ -202,33 +188,24 @@ class Registry_Handler:
             }
         tc = self.doc.get_concept_by_code(p_code)
 
-        for line in dec:
+        for l in decomposition:
             if line:
-                p = []
-                d_type = line[0]
-                if d_type in def_d_type.keys():
-                    d_type = def_d_type[line[0]]
-                
-                c_code = line[1]
-                properties = self.group_subfields(line[2:], 3) # (0,N)
-                for field in properties:
-                    prop = field[0]
-                    value = field[1]
-                    um = self.check_exists(field[2])
-                    p.append([prop, value, um])
+                d_type = l[0] if l[0] not in def_type.keys() else def_type[l[0]]
+                c_code = l[1] 
+                properties = self.group_subfields(l[2:], 3) # (0,N) #double check this, exception if 0
+                p = [[p[0], p[1], check_exists(p[2])] for p in properties]
+                    
                 self.doc.set_waste_decomposition([d_type, c_code, p])
                 
         #to be completed
-        pass
 
-    def set_text(self, r): #respect ASCII-10 (\n) and ASCII-13 (\r)
+    def set_text(self, r): # TBD respect ASCII-10 (\n) and ASCII-13 (\r)
         c_code = r[1]
         descriptive_text = r[2]
         tc = self.doc.get_concept_by_code(c_code)
         tc.set_descriptive_text(descriptive_text)
 
     def set_parametric_description(self, r):
-        #to be completed
         pass
 
     def set_specification(self, r):
@@ -251,6 +228,7 @@ class Registry_Handler:
         c_code = r[1] # (1)
         name_file = self.check_exists(r[2]) # (1,N)
         url_ext = self.check_exists(r[3]) # (0,1)
+        
         tc = self.doc.get_concept_by_code(c_code)
         #to be completed
 
@@ -305,32 +283,22 @@ class Registry_Handler:
         pass
 
     def set_measurement(self, r):
-        codes = r[1] # (1) parent code optional
+        codes = r[1] # (1)
         position = self.check_exists(r[2]) # (0,N)
         total_meas = r[3] # (1) Must coincide with the output of the corresponding ~D-type registry
         info_meas = self.check_exists(r[4]) # (0,N)
         label = self.check_exists(r[5]) # (0,1)
-        
-        # ---- Codes ----
-        if isinstance(codes, list):
-            p_code = codes[0]
-            c_code = codes[1]
-        else:
-            p_code = None
-            c_code = codes
 
+        p_code = codes[0] if isinstance(codes, list) else None # parent code optional
+        c_code = codes[1] if isinstance(codes, list) else codes
         tc = self.doc.get_concept_by_code(c_code)
 
         # ---- Position ----
-        if position and tc: # remove empty fields
-            p = []
-            for item in position:
-                if item:
-                    p.append(item)
+        if position and tc: # remove empty fields; double check this
+            p = [i for i in position if bool(i)]
             tc.set_position(p)
         # TBD
 
-        # ---- Info Meas ----
         tc.set_total_measurement(total_meas)
 
         if info_meas and tc:
@@ -342,9 +310,7 @@ class Registry_Handler:
                 }
 
             for m in meas_lines:
-                m_type = self.check_exists(m[0])
-                if m_type in def_type.keys():
-                    m_type = def_type[m[0]]
+                m_type = m[0] if m[0] not in def_type.keys() else def_type[m[0]]
                 
                 com = self.check_exists(m[1])
                 u = self.check_exists(m[2])
@@ -364,10 +330,8 @@ class Registry_Handler:
 
     def set_bim_file(self, r):
         files = r[1]
-        f = []
-        for file in files:
-            if file:
-                f.append(file)
+        f = [i for i in file if bool(i)]
+
         self.doc.set_bim_files(f)
                 
     def set_key(self, r):
@@ -381,7 +345,7 @@ class Registry_Handler:
         file_info = self.check_exists(r[2]) # (0,N)
         url_ext = self.check_exists(r[3]) # (0,1)
         tc = self.doc.get_concept_by_code(c_code)
-        def_f_type = {
+        def_type = {
             '0': 'Other',
             '1': 'Technical and manufacturing characteristics',
             '2': 'Installation, use and maintenance manual',
@@ -403,11 +367,7 @@ class Registry_Handler:
         if file_info:
             f = []
             for l in lines:
-                if l[0] in def_f_type.keys():
-                    f_type = def_f_type[l[0]]
-                else:
-                    f_type = l[0]
-                    
+                f_type = l[0] if l[0] not in def_type.keys() else def_type[l[0]]
                 f_ext = self.check_exists(l[1]) # (0,N)
                 f_des = self.check_exists(l[2]) # (0,1)
                 f.append([f_type, f_ext, f_des])
